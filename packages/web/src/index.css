@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #FEF8F0;
+  --color-foreground: #1F1A14;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1F1A14;
+  --color-primary: #9B8564;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F1EBE0;
+  --color-secondary-foreground: #1F1A14;
+  --color-muted: #F1EBE0;
+  --color-muted-foreground: #7D6A4F;
+  --color-accent: #485C11;
+  --color-accent-foreground: #FFFFFF;
+  --color-destructive: #A23A1A;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #E3D7C2;
+  --color-ring: #9B8564;
+  --color-kite-sand: #9B8564;
+  --color-kite-cream: #FEF8F0;
+  --color-kite-olive: #485C11;
+  --color-kite-brown: #1F1A14;
+  --color-kite-rust: #A23A1A;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Fira Mono", monospace;
+  --radius: 0.5rem;
+}
+
+* {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
+}
+
+.pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
+  background-color: var(--color-kite-olive);
+}
