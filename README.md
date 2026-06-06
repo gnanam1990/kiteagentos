@@ -8,6 +8,12 @@ This repository is built from the staged OpenCode prompt pack in `prompts/`.
 
 Operate autonomous Kite agents with policies, tools, budgets, approvals, and full run observability.
 
+## Proof of Work
+
+- Live Vercel deployment: https://kiteagentos.vercel.app
+- Public proof report: [docs/PROOF_OF_WORK.md](docs/PROOF_OF_WORK.md)
+- Rendered screenshot: [docs/screenshot.jpg](docs/screenshot.jpg)
+
 ## Core modules
 
 - **Agent Builder** — Create agent profiles with goals, instructions, wallet, and risk level.
