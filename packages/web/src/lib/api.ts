@@ -31,9 +31,25 @@ export interface ApprovalRequest {
   requestedAt: string;
 }
 
-const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
+const configuredApiBase = (import.meta.env.VITE_API_URL ?? "").trim();
+const localHostnames = new Set(["localhost", "127.0.0.1", "::1"]);
+const isLocalPage = typeof window !== "undefined" && localHostnames.has(window.location.hostname);
+
+function resolveApiBase(value: string) {
+  if (!value) return isLocalPage ? "http://localhost:8787" : "";
+  try {
+    const url = new URL(value);
+    if (localHostnames.has(url.hostname) && !isLocalPage) return "";
+    return value.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+const apiBase = resolveApiBase(configuredApiBase);
 
 async function getJson<T>(path: string, fallback: T): Promise<T> {
+  if (!apiBase) return fallback;
   try {
     const response = await fetch(`${apiBase}${path}`);
     if (!response.ok) throw new Error(String(response.status));
