@@ -1,29 +1,78 @@
 @import "tailwindcss";
 
+@font-face {
+  font-display: swap;
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./assets/fonts/DMSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 500;
+  src: url("./assets/fonts/DMSans-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 700;
+  src: url("./assets/fonts/DMSans-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Crimson Text";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./assets/fonts/CrimsonText-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Crimson Text";
+  font-style: normal;
+  font-weight: 600;
+  src: url("./assets/fonts/CrimsonText-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Crimson Text";
+  font-style: normal;
+  font-weight: 700;
+  src: url("./assets/fonts/CrimsonText-Bold.ttf") format("truetype");
+}
+
 @theme {
-  --color-background: #FEF8F0;
-  --color-foreground: #1F1A14;
-  --color-card: #FFFFFF;
-  --color-card-foreground: #1F1A14;
-  --color-primary: #9B8564;
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary: #F1EBE0;
-  --color-secondary-foreground: #1F1A14;
-  --color-muted: #F1EBE0;
-  --color-muted-foreground: #7D6A4F;
-  --color-accent: #485C11;
-  --color-accent-foreground: #FFFFFF;
-  --color-destructive: #A23A1A;
-  --color-destructive-foreground: #FFFFFF;
-  --color-border: #E3D7C2;
-  --color-ring: #9B8564;
-  --color-kite-sand: #9B8564;
-  --color-kite-cream: #FEF8F0;
-  --color-kite-olive: #485C11;
-  --color-kite-brown: #1F1A14;
-  --color-kite-rust: #A23A1A;
-  --font-sans: "Geist", system-ui, sans-serif;
-  --font-mono: "Geist Mono", "Fira Mono", monospace;
+  --color-background: #F4EFE7;
+  --color-foreground: #3D2B27;
+  --color-card: #FFFDF9;
+  --color-card-foreground: #3D2B27;
+  --color-primary: #8A7469;
+  --color-primary-foreground: #F4EFE7;
+  --color-secondary: #E8DED6;
+  --color-secondary-foreground: #3D2B27;
+  --color-muted: #E8DED6;
+  --color-muted-foreground: #8A7469;
+  --color-accent: #3D2B27;
+  --color-accent-foreground: #F4EFE7;
+  --color-destructive: #8A3D34;
+  --color-destructive-foreground: #F4EFE7;
+  --color-border: #D6C8BF;
+  --color-ring: #8A7469;
+  --color-kite-sand: #8A7469;
+  --color-kite-cream: #F4EFE7;
+  --color-kite-olive: #6F5E55;
+  --color-kite-brown: #3D2B27;
+  --color-kite-rust: #8A3D34;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-brand: "Crimson Text", Georgia, serif;
+  --font-mono: "DM Sans", ui-monospace, monospace;
   --radius: 0.5rem;
 }
 
@@ -41,6 +90,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+h1 {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+.kite-brand-word {
+  font-family: var(--font-brand);
+  letter-spacing: 0;
+}
+
 @keyframes pulse-live {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(0.9); }
@@ -48,5 +109,5 @@ body {
 
 .pulse-live {
   animation: pulse-live 2s ease-in-out infinite;
-  background-color: var(--color-kite-olive);
+  background-color: var(--color-kite-brown);
 }

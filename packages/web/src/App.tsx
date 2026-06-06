@@ -45,7 +45,7 @@ function HomePage({ items, activity, approvals }: { items: ProductItem[]; activi
     <>
       <section className="rounded-xl border border-border bg-secondary p-8">
         <PreviewBadge label="PREVIEW HONESTY" />
-        <h1 className="mt-6 max-w-4xl text-6xl font-bold tracking-tight text-kite-brown">{product.hero}</h1>
+        <h1 className="mt-6 max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl text-kite-brown">{product.hero}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">{product.positioning} Every risky or fund-moving action is approval-first and labeled honestly.</p>
         <div className="mt-7 flex flex-wrap gap-3">
           <a href={product.entityRoute}><Button><Play size={16} /> Open {product.entity}</Button></a>
