@@ -40,9 +40,11 @@ import {
   fallbackItems,
   fetchActivity,
   fetchApprovals,
+  fetchChainStats,
   fetchItems,
   type ActivityEvent,
   type ApprovalRequest,
+  type ChainStats,
   type ProductItem,
 } from "./lib/api";
 
@@ -646,16 +648,36 @@ function GenericRoutePage() {
   );
 }
 
+function LiveNetworkStrip({ stats }: { stats: ChainStats | null }) {
+  if (!stats) return null;
+  const live = stats.live && typeof stats.blockNumber === "number";
+  return (
+    <div className="w-full border-b border-kite-cream/10 bg-kite-brown text-kite-cream">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 px-5 py-1.5 text-xs font-semibold">
+        <span className="inline-flex items-center gap-1.5">
+          <span className={cx("h-1.5 w-1.5 rounded-full", live ? "bg-emerald-400" : "bg-amber-400")} />
+          {live ? "Live" : "Preview"} · Kite Mainnet · chain 2366
+        </span>
+        {live && <span>block #{stats.blockNumber!.toLocaleString()}</span>}
+        {live && stats.gasPrices && <span>gas {stats.gasPrices.average} gwei</span>}
+        <span className="ml-auto opacity-70">{live ? "rpc.gokite.ai + kitescan.ai" : "bundled preview data"}</span>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   const [items, setItems] = useState(fallbackItems);
   const [activity, setActivity] = useState(fallbackActivity);
   const [approvals, setApprovals] = useState(fallbackApprovals);
+  const [chain, setChain] = useState<ChainStats | null>(null);
   const path = window.location.pathname;
 
   useEffect(() => {
     fetchItems().then((data) => setItems(data.items));
     fetchActivity().then((data) => setActivity(data.activity));
     fetchApprovals().then((data) => setApprovals(data.approvals));
+    fetchChainStats().then(setChain);
   }, []);
 
   const page = useMemo(() => {
@@ -669,5 +691,10 @@ export function App() {
     return <GenericRoutePage />;
   }, [activity, approvals, items, path]);
 
-  return <Shell activePath={path}>{page}</Shell>;
+  return (
+    <>
+      <LiveNetworkStrip stats={chain} />
+      <Shell activePath={path}>{page}</Shell>
+    </>
+  );
 }

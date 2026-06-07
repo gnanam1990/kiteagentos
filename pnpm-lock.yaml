@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      hono:
+        specifier: ^4.10.7
+        version: 4.12.23
     devDependencies:
       '@types/node':
         specifier: ^24.10.2
@@ -23,9 +27,15 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.6
         version: 1.19.14(hono@4.12.23)
+      '@kiteagentos/connectors':
+        specifier: workspace:*
+        version: link:../connectors
       '@kiteagentos/core':
         specifier: workspace:*
         version: link:../core
+      '@kiteagentos/worker':
+        specifier: workspace:*
+        version: link:../worker
       hono:
         specifier: ^4.10.7
         version: 4.12.23

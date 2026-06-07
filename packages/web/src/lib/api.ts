@@ -35,14 +35,19 @@ const configuredApiBase = (import.meta.env.VITE_API_URL ?? "").trim();
 const localHostnames = new Set(["localhost", "127.0.0.1", "::1"]);
 const isLocalPage = typeof window !== "undefined" && localHostnames.has(window.location.hostname);
 
+// In production the SPA and the API live on the same Vercel deployment, so the
+// API is reachable at the same-origin "/api" path. Locally we hit the dev server
+// on :8787. A localhost VITE_API_URL baked into a production build is meaningless,
+// so it falls back to "/api" rather than silently using only bundled data.
 function resolveApiBase(value: string) {
-  if (!value) return isLocalPage ? "http://localhost:8787" : "";
+  if (!value) return isLocalPage ? "http://localhost:8787" : "/api";
   try {
     const url = new URL(value);
-    if (localHostnames.has(url.hostname) && !isLocalPage) return "";
+    if (localHostnames.has(url.hostname) && !isLocalPage) return "/api";
     return value.replace(/\/$/, "");
   } catch {
-    return "";
+    // Relative path such as "/api".
+    return value.startsWith("/") ? value.replace(/\/$/, "") : "/api";
   }
 }
 
@@ -113,4 +118,22 @@ export function fetchActivity() {
 
 export function fetchApprovals() {
   return getJson<{ approvals: ApprovalRequest[] }>("/approvals", { approvals: fallbackApprovals });
+}
+
+export interface ChainStats {
+  network: string;
+  chainId: number;
+  blockNumber?: number;
+  gasPrices?: { slow: number; average: number; fast: number };
+  live: boolean;
+  preview: boolean;
+}
+
+export function fetchChainStats() {
+  return getJson<ChainStats>("/chain/stats", {
+    network: "mainnet",
+    chainId: 2366,
+    live: false,
+    preview: true,
+  });
 }
