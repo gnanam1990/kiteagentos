@@ -120,6 +120,19 @@ export function fetchApprovals() {
   return getJson<{ approvals: ApprovalRequest[] }>("/approvals", { approvals: fallbackApprovals });
 }
 
+export async function createItem(input: { name: string; description: string; owner: string }): Promise<ProductItem> {
+  if (!apiBase) throw new Error("API is not configured");
+  const response = await fetch(`${apiBase}${product.entityRoute}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const data = (await response.json().catch(() => ({}))) as { item?: ProductItem; error?: string };
+  if (!response.ok) throw new Error(data.error ?? `Create failed (${response.status})`);
+  if (!data.item) throw new Error("Malformed response from API");
+  return data.item;
+}
+
 export interface ChainStats {
   network: string;
   chainId: number;

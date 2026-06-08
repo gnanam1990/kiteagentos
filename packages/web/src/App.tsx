@@ -35,6 +35,7 @@ import kiteMark from "./assets/brand/kite-logo-mark-black.png";
 import kiteMarkWhite from "./assets/brand/kite-logo-mark-white.png";
 import { product } from "./lib/product";
 import {
+  createItem,
   fallbackActivity,
   fallbackApprovals,
   fallbackItems,
@@ -104,11 +105,19 @@ function BrandLockup({ compact = false, inverse = false }: { compact?: boolean; 
   );
 }
 
+// Only surface nav options that map to a real, working page: Home, the entity
+// list, the activity/runs log, and approvals. Every other route in product.routes
+// renders a generic placeholder, so it is intentionally left out of the nav.
 function navItems(): NavItem[] {
-  const labels = product.routes
-    .filter((route) => !route.includes(":"))
-    .map((route) => [route, route === "/" ? "Home" : titleCase(route.split("/").filter(Boolean)[0])] as NavItem);
-  return Array.from(new Map(labels.map(([route, label]) => [label, route])).entries()).slice(0, 7).map(([label, route]) => [route, label]);
+  const activityRoute = product.routes.includes("/executions") ? "/executions" : "/runs";
+  const candidates: NavItem[] = [
+    ["/", "Home"],
+    [product.entityRoute, titleCase(product.entityRoute.split("/").filter(Boolean)[0])],
+    [activityRoute, titleCase(activityRoute.split("/").filter(Boolean)[0])],
+    ["/approvals", "Approvals"],
+  ];
+  const seen = new Set<string>();
+  return candidates.filter(([, label]) => (seen.has(label) ? false : (seen.add(label), true)));
 }
 
 function NavLinks({ activePath, vertical = false, inverse = false }: { activePath: string; vertical?: boolean; inverse?: boolean }) {
@@ -556,33 +565,102 @@ function EntityPage({ items }: { items: ProductItem[] }) {
   const inverse = experience.chrome === "dark" || experience.chrome === "terminal";
   return (
     <div className="grid gap-5">
-      <SectionTitle icon={PackageCheck} title={titleCase(product.entity)} body={product.positioning} inverse={inverse} />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionTitle icon={PackageCheck} title={titleCase(product.entity)} body={product.positioning} inverse={inverse} />
+        <a href={`${product.entityRoute}/new`} className={cx("inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold", inverse ? "bg-kite-cream text-kite-brown" : "bg-primary text-primary-foreground")}>
+          <ArrowRight size={16} /> New {product.entitySingular}
+        </a>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
-          <Surface key={item.id} dark={inverse}>
-            <div className="flex items-start justify-between gap-3">
-              <div><h2 className={cx("text-xl font-bold", inverse ? "text-kite-cream" : "text-kite-brown")}>{item.name}</h2><p className={cx("mt-2 text-sm leading-6", inverse ? "text-kite-cream/60" : "text-muted-foreground")}>{item.description}</p></div>
-              <StatusPill value={item.risk} />
-            </div>
-            <div className={cx("mt-5 rounded border px-3 py-2 text-sm", inverse ? "border-kite-cream/10 bg-kite-cream/[0.05] text-kite-cream/70" : "border-border bg-secondary text-muted-foreground")}>Budget <span className="font-mono">{item.budgetKite} KITE</span></div>
-          </Surface>
+          <a key={item.id} href={`${product.entityRoute}/${item.id}`} className="block">
+            <Surface dark={inverse} className="h-full transition hover:border-kite-rust">
+              <div className="flex items-start justify-between gap-3">
+                <div><h2 className={cx("text-xl font-bold", inverse ? "text-kite-cream" : "text-kite-brown")}>{item.name}</h2><p className={cx("mt-2 text-sm leading-6", inverse ? "text-kite-cream/60" : "text-muted-foreground")}>{item.description}</p></div>
+                <StatusPill value={item.risk} />
+              </div>
+              <div className={cx("mt-5 rounded border px-3 py-2 text-sm", inverse ? "border-kite-cream/10 bg-kite-cream/[0.05] text-kite-cream/70" : "border-border bg-secondary text-muted-foreground")}>Budget <span className="font-mono">{item.budgetKite} KITE</span></div>
+            </Surface>
+          </a>
         ))}
       </div>
     </div>
   );
 }
 
-function NewItemPage() {
+function ItemDetailPage({ items }: { items: ProductItem[] }) {
   const inverse = experience.chrome === "dark" || experience.chrome === "terminal";
+  const id = window.location.pathname.split("/").filter(Boolean)[1];
+  const item = items.find((entry) => entry.id === id);
   return (
     <div className="grid gap-5">
-      <SectionTitle icon={ListChecks} title={`New ${product.entitySingular}`} body="Draft the object, policy, owner, and approval posture before it can move funds or trust state." inverse={inverse} />
+      <a href={product.entityRoute} className={cx("text-sm font-bold", inverse ? "text-kite-cream/70" : "text-muted-foreground")}>&larr; Back to {product.entity}</a>
+      {!item ? (
+        <Surface dark={inverse}><p className={cx("font-bold", inverse ? "text-kite-cream" : "text-kite-brown")}>Not found</p><p className={cx("mt-2 text-sm", inverse ? "text-kite-cream/60" : "text-muted-foreground")}>No {product.entitySingular} with id <span className="font-mono">{id}</span>.</p></Surface>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className={cx("text-3xl font-bold", inverse ? "text-kite-cream" : "text-kite-brown")}>{item.name}</h1>
+            <StatusPill value={item.status} />
+            <StatusPill value={item.risk} />
+          </div>
+          <Surface dark={inverse}>
+            <p className={cx("text-sm leading-6", inverse ? "text-kite-cream/70" : "text-muted-foreground")}>{item.description}</p>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+              {[["Owner", item.owner], ["Budget", `${item.budgetKite} KITE`], ["Risk", item.risk], ["Status", item.status], ["Module", item.moduleId], ["Created", item.createdAt]].map(([k, v]) => (
+                <div key={k} className={cx("rounded border px-3 py-2 text-sm", inverse ? "border-kite-cream/10 bg-kite-cream/[0.05]" : "border-border bg-secondary")}>
+                  <dt className={cx("text-xs font-bold uppercase", inverse ? "text-kite-cream/50" : "text-muted-foreground")}>{k}</dt>
+                  <dd className={cx("mt-1 break-all font-mono text-sm", inverse ? "text-kite-cream" : "text-kite-brown")}>{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </Surface>
+        </>
+      )}
+    </div>
+  );
+}
+
+function NewItemPage() {
+  const inverse = experience.chrome === "dark" || experience.chrome === "terminal";
+  const [name, setName] = useState(product.modules[0].name);
+  const [description, setDescription] = useState(product.modules[0].description);
+  const [owner, setOwner] = useState("0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043");
+  const [state, setState] = useState<{ kind: "idle" | "saving" | "ok" | "error"; message?: string; item?: ProductItem }>({ kind: "idle" });
+  const fieldClass = "mt-2 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-kite-brown";
+  const labelClass = cx("text-sm font-bold", inverse ? "text-kite-cream" : "text-kite-brown");
+
+  async function submit() {
+    if (!name.trim() || !description.trim() || !owner.trim()) {
+      setState({ kind: "error", message: "Name, description, and owner are required." });
+      return;
+    }
+    setState({ kind: "saving" });
+    try {
+      const item = await createItem({ name, description, owner });
+      setState({ kind: "ok", item });
+    } catch (error) {
+      setState({ kind: "error", message: error instanceof Error ? error.message : "Create failed" });
+    }
+  }
+
+  return (
+    <div className="grid gap-5">
+      <a href={product.entityRoute} className={cx("text-sm font-bold", inverse ? "text-kite-cream/70" : "text-muted-foreground")}>&larr; Back to {product.entity}</a>
+      <SectionTitle icon={ListChecks} title={`New ${product.entitySingular}`} body="Draft the object, owner, and description. Submitting posts to the live API." inverse={inverse} />
       <Surface dark={inverse}>
         <div className="grid gap-4 md:grid-cols-2">
-          <label className={cx("text-sm font-bold", inverse ? "text-kite-cream" : "text-kite-brown")}>Name<input className="mt-2 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-kite-brown" defaultValue={product.modules[0].name} /></label>
-          <label className={cx("text-sm font-bold", inverse ? "text-kite-cream" : "text-kite-brown")}>Risk policy<select className="mt-2 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-kite-brown" defaultValue="medium"><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select></label>
+          <label className={labelClass}>Name<input className={fieldClass} value={name} onChange={(e) => setName(e.target.value)} /></label>
+          <label className={labelClass}>Owner (EVM address)<input className={cx(fieldClass, "font-mono")} value={owner} onChange={(e) => setOwner(e.target.value)} /></label>
         </div>
-        <textarea className="mt-4 min-h-28 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-kite-brown" defaultValue={product.modules[0].description} />
+        <label className={cx("mt-4 block", labelClass)}>Description<textarea className={cx(fieldClass, "min-h-28")} value={description} onChange={(e) => setDescription(e.target.value)} /></label>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button type="button" onClick={submit} disabled={state.kind === "saving"} className={cx("inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-60", inverse ? "bg-kite-cream text-kite-brown" : "bg-primary text-primary-foreground")}>
+            {state.kind === "saving" ? "Creating…" : `Create ${product.entitySingular}`}
+          </button>
+          {state.kind === "ok" && <span className="text-sm font-bold text-[#45543f]">✓ Created {state.item?.name} ({state.item?.id}) — <a className="underline" href={product.entityRoute}>view all</a></span>}
+          {state.kind === "error" && <span className="text-sm font-bold text-kite-rust">{state.message}</span>}
+        </div>
       </Surface>
     </div>
   );
@@ -684,7 +762,7 @@ export function App() {
     if (path === "/") return <HomePage items={items} activity={activity} approvals={approvals} />;
     if (path === product.entityRoute) return <EntityPage items={items} />;
     if (path.endsWith("/new")) return <NewItemPage />;
-    if (path.startsWith(product.entityRoute + "/")) return <EntityPage items={items} />;
+    if (path.startsWith(product.entityRoute + "/")) return <ItemDetailPage items={items} />;
     if (path === "/runs" || path === "/executions") return <ActivityPage activity={activity} />;
     if (path === "/approvals") return <ApprovalsPage approvals={approvals} onResolve={(id, status) => setApprovals((current) => current.map((approval) => approval.id === id ? { ...approval, status } : approval).filter((approval) => approval.status === "pending"))} />;
     if (product.routes.some((route) => path === route || (!route.includes(":") && path.startsWith(route + "/")))) return <GenericRoutePage />;
