@@ -108,8 +108,36 @@ export const fallbackApprovals: ApprovalRequest[] = [
   },
 ];
 
-export function fetchItems() {
-  return getJson<{ items: ProductItem[] }>(product.entityRoute, { items: fallbackItems });
+// The serverless API is stateless, so items created in the UI are also kept in
+// localStorage and merged into the list. This makes the create flow actually
+// complete: a new item shows up in the list and survives a reload.
+const createdKey = `kite:created:${product.repo}`;
+
+function loadCreated(): ProductItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(createdKey);
+    return raw ? (JSON.parse(raw) as ProductItem[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberCreated(item: ProductItem) {
+  if (typeof window === "undefined") return;
+  try {
+    const next = [item, ...loadCreated().filter((entry) => entry.id !== item.id)].slice(0, 25);
+    window.localStorage.setItem(createdKey, JSON.stringify(next));
+  } catch {
+    // localStorage unavailable (private mode, quota) — non-fatal.
+  }
+}
+
+export async function fetchItems() {
+  const created = loadCreated();
+  const result = await getJson<{ items: ProductItem[] }>(product.entityRoute, { items: fallbackItems });
+  const apiIds = new Set(result.items.map((item) => item.id));
+  return { items: [...created.filter((item) => !apiIds.has(item.id)), ...result.items] };
 }
 
 export function fetchActivity() {
@@ -130,6 +158,7 @@ export async function createItem(input: { name: string; description: string; own
   const data = (await response.json().catch(() => ({}))) as { item?: ProductItem; error?: string };
   if (!response.ok) throw new Error(data.error ?? `Create failed (${response.status})`);
   if (!data.item) throw new Error("Malformed response from API");
+  rememberCreated(data.item);
   return data.item;
 }
 
